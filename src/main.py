@@ -16,6 +16,7 @@ from fastapi.responses import (
 )
 from fastapi.encoders import jsonable_encoder
 
+from src.account.controller import account_router
 
 from starlette.middleware.cors import CORSMiddleware
 
