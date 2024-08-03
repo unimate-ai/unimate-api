@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 from http import HTTPStatus
 
 from pydantic import (
@@ -18,6 +19,7 @@ from src.friends.schema import (
     FriendModelSchema,
 )
 
+from src.account.model import User
 from src.account.exceptions import (
     UnauthorizedOperationException,
 )
@@ -80,6 +82,54 @@ class FriendsService:
             return response
         except Exception as err:
             raise err
+        
+    @classmethod
+    def fetch_my_friends(
+        cls,
+        session: Session,
+        current_user_email: EmailStr,
+    ) -> GenericAPIResponseModel:
+        user = AccountService.get_user_by_email(
+            session=session,
+            student_email=current_user_email,
+        )
+
+        if user is None:
+            raise UserDoesNotExistsException()
+
+        friends_pair_raw = session.query(Friend) \
+                        .filter(
+                            # OR conditional filtering
+                            (Friend.friend_one == user.id) | (Friend.friend_two == user.id)
+                        ) \
+                        .all()
+        
+        # Convert List[Friend] into List[User]
+        my_friends: List[User] = []
+
+        for pair in friends_pair_raw:
+            friend_id = pair.friend_two if pair.friend_one == user.id else pair.friend_one
+
+            friend_user_obj = AccountService.get_user_by_id(
+                session=session,
+                user_id=friend_id,
+            )
+
+            my_friends.append(friend_user_obj)
+        
+        data = {
+            "friends": my_friends,
+        }
+        
+        data_json = jsonable_encoder(data)
+
+        response = GenericAPIResponseModel(
+            status=HTTPStatus.OK,
+            message="Successfully fetched all friends",
+            data=data_json,
+        )
+
+        return response
         
     # Utility methods
     @staticmethod

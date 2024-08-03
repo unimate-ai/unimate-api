@@ -79,12 +79,12 @@ class AccountService:
         cls,
         session: Session,
         payload: SocialsSchema,
-        x_current_user: EmailStr,
+        current_user_email: EmailStr,
     ) -> GenericAPIResponseModel:
         try:
             user: (User | None) = AccountService.get_user_by_email(
                 session=session,
-                student_email=x_current_user,
+                student_email=current_user_email,
             )
 
             if not user:
@@ -124,9 +124,6 @@ class AccountService:
         Fetch a user from the database based on ID
         """
 
-        users = session.query(User).all()
-        logger.info(users)
-        
         user = session.query(User) \
                 .filter(User.id == user_id, User.is_deleted == False) \
                 .first()

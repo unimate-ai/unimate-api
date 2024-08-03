@@ -98,7 +98,7 @@ def create_socials(
         response = AccountService.create_user_socials(
             session=session,
             payload=payload,
-            x_current_user=x_current_user,
+            current_user_email=x_current_user,
         )
 
         return build_api_response(response)
