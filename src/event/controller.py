@@ -86,11 +86,22 @@ def fetch_event_by_id(
     event_id: str,
     session: Session = Depends(get_db),
 ):
-    event_uuid = uuid.UUID(event_id)
+    try:
+        event_uuid = uuid.UUID(event_id)
 
-    response = EventService.fetch_event_details(
-        payload=event_uuid,
-        session=session,
-    )
+        response = EventService.fetch_event_details(
+            payload=event_uuid,
+            session=session,
+        )
 
-    return build_api_response(response)
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)

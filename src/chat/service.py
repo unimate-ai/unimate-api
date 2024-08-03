@@ -3,7 +3,8 @@ from typing import List
 from http import HTTPStatus
 
 from pydantic import (
-    EmailStr
+    EmailStr,
+    UUID4
 )
 
 from unimate_logger import logger
@@ -24,6 +25,7 @@ from src.account.service import AccountService
 
 from src.chat.exceptions import (
     ChatroomAlreadyExistsException,
+    ChatroomDoesNotExistsException,
 )
 
 from src.chat.model import (
@@ -92,6 +94,52 @@ class ChatService:
             response = GenericAPIResponseModel(
                 status=HTTPStatus.CREATED,
                 message="Successfully created new chatroom",
+                data=data_json,
+            )
+
+            return response
+        except Exception as err:
+            raise err
+        
+    @classmethod
+    def fetch_chatroom(
+        cls,
+        current_user_email: EmailStr,
+        chatroom_id: UUID4,
+        session: Session,
+    ) -> GenericAPIResponseModel:
+        try:
+            # Check if user is logged in
+            user = AccountService.get_user_by_email(
+                session=session,
+                student_email=current_user_email,
+            )
+
+            if user is None:
+                raise UnauthorizedOperationException()
+
+            # Fetch chatroom
+            chatroom = session.query(Chatroom) \
+                        .filter(Chatroom.id == chatroom_id) \
+                        .first()
+            
+            if not chatroom:
+                raise ChatroomDoesNotExistsException()
+            
+            # Check if user is in the chatroom or not
+            if (chatroom.user_one_id != user.id) and (chatroom.user_two_id != user.id):
+                raise ChatroomDoesNotExistsException()
+            
+            # If chatroom exists and contains the requesting user, serve the request
+            data = {
+                "chatroom": chatroom,
+            }
+
+            data_json = jsonable_encoder(data)
+
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.OK,
+                message="Success fetching chatroom details",
                 data=data_json,
             )
 
