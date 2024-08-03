@@ -38,6 +38,7 @@ from src.chat.schema import (
     ChatroomModelSchema,
     ChatMessageSchema,
     ChatMessageModelSchema,
+    ChatMessageRequestSchema,
 )
 
 class ChatService:
@@ -209,7 +210,91 @@ class ChatService:
         except Exception as err:
             raise err
         
+    @classmethod
+    def send_message(
+        cls,
+        current_user_email: EmailStr,
+        payload: ChatMessageRequestSchema,
+        session: Session,
+    ):
+        try:
+            user = AccountService.get_user_by_email(
+                session=session,
+                student_email=current_user_email,
+            )
+
+            if user is None:
+                raise UnauthorizedOperationException()
+            
+            chat_payload = ChatMessageSchema(
+                sender_id=user.id,
+                chatroom_id=payload.chatroom_id,
+                message=payload.message,
+            )
+
+            message = cls._send_message(
+                payload=chat_payload,
+                session=session,
+            )
+
+            data = {
+                "message": message,
+            }            
+
+            data_json = jsonable_encoder(data)
+
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.OK,
+                message="Successfully sent message",
+                data=data_json,
+            )
+
+            return response
+        except Exception as err:
+            raise err
+
+
+        
     # Utility methods
+    @staticmethod
+    def _create_chat_message_schema(
+        payload: ChatMessageSchema, 
+    ) -> ChatMessageModelSchema:
+        time_now_tz = get_datetime_now_melb()
+
+        return ChatMessageModelSchema(
+            id=uuid.uuid4(),
+            created_at=time_now_tz,
+            updated_at=time_now_tz,
+            is_deleted=False,
+
+            chatroom_id=payload.chatroom_id,
+            sender_id=payload.sender_id,
+            message=payload.message,
+        )
+    
+    @classmethod
+    def _send_message(
+        cls,
+        payload: ChatMessageSchema,
+        session: Session,
+    ) -> ChatMessage:
+        schema = cls._create_chat_message_schema(
+            payload=payload,
+        )
+
+        db_obj = ChatMessage(**schema.model_dump())
+
+        try:
+            session.add(db_obj)
+            session.commit()
+            session.refresh(db_obj)
+
+            return db_obj
+        except Exception as err:
+            session.rollback()
+            raise err
+
     @staticmethod
     def _create_chatroom_schema(
         payload: ChatroomRequestSchema,
