@@ -14,3 +14,8 @@ class RegistrationFailedException(Exception):
     def __init__(self, message="Error while registering new user"):
         super().__init__(message)
         self.message = message
+
+class UnauthorizedOperationException(Exception):
+    def __init__(self, message="Unauthorized operation. You may have to log in with the necessary permissions to perform this action."):
+        super().__init__(message)
+        self.message = message

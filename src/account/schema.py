@@ -27,3 +27,14 @@ class RegisterResponseSchema(BaseModel):
 
 class UserModelSchema(RegisterSchema, UniMateBaseSchema):
     pass
+
+class SocialsSchema(BaseModel):
+    social_type: str = Field(..., max_length=255)
+    url: str
+
+class SocialsResponseSchema(SocialsSchema):
+    owner_email: EmailStr
+
+class SocialsModelSchema(SocialsSchema, UniMateBaseSchema):
+    # owner: EmailStr
+    owner_id: UUID4

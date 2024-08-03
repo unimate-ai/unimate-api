@@ -21,14 +21,20 @@ from src.account.schema import (
     RegisterSchema,
     UserModelSchema,
     RegisterResponseSchema,
+
+    SocialsSchema,
+    SocialsResponseSchema,
+    SocialsModelSchema,
 )
 from src.account.exceptions import (
     UserAlreadyExistsException,
     RegistrationFailedException,
+    UnauthorizedOperationException,
 )
 from src.account import messages as AccountMessages
 
 class AccountService:
+    # Business Logic
     @classmethod
     def register_user(
         cls,
@@ -66,8 +72,47 @@ class AccountService:
             return response
         except Exception as err:
             raise RegistrationFailedException()
+        
+    @classmethod
+    def create_user_socials(
+        cls,
+        session: Session,
+        payload: SocialsSchema,
+        x_current_user: EmailStr,
+    ) -> GenericAPIResponseModel:
+        try:
+            user: (User | None) = AccountService.get_user_by_email(
+                session=session,
+                student_email=x_current_user,
+            )
 
+            if not user:
+                raise UnauthorizedOperationException()
 
+            socials = cls._create_user_socials(
+                session=session,
+                user=user,
+                payload=payload,
+            )
+            
+            data = SocialsResponseSchema(
+                social_type=socials.social_type,
+                url=socials.url,
+                owner_email=user.student_email,
+            )
+
+            data_json = jsonable_encoder(data)
+
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.CREATED,
+                message=AccountMessages.CREATED_SOCIALS,
+                data=data_json
+            )
+            
+            return response
+        except Exception as err:
+            raise err
+        
     # Utility methods
     @staticmethod
     def get_user_by_email(
@@ -122,3 +167,42 @@ class AccountService:
         except Exception as err:
             session.rollback()
             raise RegistrationFailedException(err.__str__())
+        
+    @staticmethod
+    def _create_user_socials_schema(
+        user: User,
+        payload: SocialsSchema,
+    ) -> SocialsModelSchema:
+        time_now_tz = get_datetime_now_melb()
+        
+        return SocialsModelSchema(
+            id=uuid.uuid4(),
+            created_at=time_now_tz,
+            updated_at=time_now_tz,
+            is_deleted=False,
+
+            owner_id=user.id,
+            social_type=payload.social_type,
+            url=payload.url,
+        )
+    
+    @classmethod
+    def _create_user_socials(
+        cls,
+        session: Session,
+        user: User,
+        payload: SocialsSchema,
+    ) -> Socials:
+        socials_model_schema = cls._create_user_socials_schema(user=user, payload=payload)
+
+        socials_obj_db = Socials(**socials_model_schema.model_dump())
+        
+        try:
+             session.add(socials_obj_db)
+             session.commit()     
+             session.refresh(socials_obj_db)
+
+             return socials_obj_db
+        except Exception as err:
+            session.rollback()
+            raise err

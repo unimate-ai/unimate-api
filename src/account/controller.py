@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing_extensions import Annotated
 from sqlalchemy.orm import Session
+from pydantic import EmailStr
 
 from unimate_logger import logger
 from fastapi import (
@@ -9,6 +10,7 @@ from fastapi import (
     Response,
     Depends,
     Body,
+    Header,
 )
 
 from fastapi.responses import (
@@ -25,10 +27,12 @@ from src.account.service import AccountService
 from src.account.model import User
 from src.account.schema import (
     RegisterSchema,
+    SocialsSchema,
 )
 from src.account.exceptions import (
     UserAlreadyExistsException,
     RegistrationFailedException,
+    UnauthorizedOperationException,
 )
 
 
@@ -81,3 +85,37 @@ def register_user(
 
         return build_api_response(response)
     
+@account_router.post("/socials")
+def create_socials(
+    x_current_user: Annotated[EmailStr | None, Header()] = None,
+    payload: SocialsSchema = Body(),
+    session: Session = Depends(get_db),
+):
+    try:
+        if x_current_user is None:
+            raise UnauthorizedOperationException()
+        
+        response = AccountService.create_user_socials(
+            session=session,
+            payload=payload,
+            x_current_user=x_current_user,
+        )
+
+        return build_api_response(response)
+    except UnauthorizedOperationException as err:
+        response = GenericAPIResponseModel(
+            status=HTTPStatus.UNAUTHORIZED,
+            message="You are not logged in!",
+            error="Unauthorized: Failed to perform this operation. Try logging in with the required permissions."
+        )
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
