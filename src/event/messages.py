@@ -1,0 +1,1 @@
+CREATED_EVENT = "Event successfully created!"

@@ -23,19 +23,15 @@ from sqlalchemy.orm import (
 
 from src.core.model import UniMateBaseModel
 
-class User(UniMateBaseModel):
-    __tablename__ = "users"
+class Event(UniMateBaseModel):
+    __tablename__ = "events"
 
     name = Column(String(255))
-    student_email = Column(String(255), unique=True)
-    major = Column(String(255))
-    cohort_year = Column(Integer())
-    graduation_year = Column(Integer())
+    organizer = Column(String(255))
+    is_campus_event = Column(Boolean())
+    start_time = Column(TIMESTAMP(timezone=True))
+    end_time = Column(TIMESTAMP(timezone=True))
     interests = Column(ARRAY(String(255)))
+    location = Column(String(255))
+    description = Column(String())
 
-class Socials(UniMateBaseModel):
-    __tablename__ = "socials"
-
-    owner_id = Column(UUID(), ForeignKey("users.id"))
-    social_type = Column(String(255))
-    url = Column(String())
