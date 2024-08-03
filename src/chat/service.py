@@ -147,6 +147,68 @@ class ChatService:
         except Exception as err:
             raise err
         
+    @classmethod
+    def fetch_all_chats(
+        cls,
+        current_user_email: EmailStr,
+        session: Session,
+    ) -> GenericAPIResponseModel:
+        try:
+            # Check if user is logged in
+            user = AccountService.get_user_by_email(
+                session=session,
+                student_email=current_user_email,
+            )
+
+            if user is None:
+                raise UnauthorizedOperationException()
+
+            # Fetch all chats
+            my_chats_raw = session.query(Chatroom) \
+                        .filter(
+                            (Chatroom.user_one_id == user.id) | (Chatroom.user_two_id == user.id)
+                        ) \
+                        .all()
+            
+            # Polish the response output by displaying the user info
+            my_chats = []
+            for chat in my_chats_raw:
+                user_one = AccountService.get_user_by_id(
+                    session=session,
+                    user_id=chat.user_one_id,
+                )
+
+                user_two = AccountService.get_user_by_id(
+                    session=session,
+                    user_id=chat.user_two_id,
+                )
+
+                chat_formatted = {
+                    "detail": chat,
+                    "members": [
+                        user_one,
+                        user_two,
+                    ],
+                }
+
+                my_chats.append(chat_formatted)
+
+            data = {
+                "chats": my_chats,
+            }
+
+            data_json = jsonable_encoder(data)
+
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.OK,
+                message="Successfully fetched all chats",
+                data=data_json,
+            )
+
+            return response
+        except Exception as err:
+            raise err
+        
     # Utility methods
     @staticmethod
     def _create_chatroom_schema(
