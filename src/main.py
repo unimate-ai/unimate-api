@@ -19,6 +19,7 @@ from fastapi.encoders import jsonable_encoder
 # Import routers
 from src.account.controller import account_router
 from src.interest.controller import interests_router
+from src.event.controller import event_router
 
 from starlette.middleware.cors import CORSMiddleware
 
@@ -57,7 +58,7 @@ app.add_middleware(
 # Include routers after adding CORS middleware
 app.include_router(account_router)
 app.include_router(interests_router)
-
+app.include_router(event_router)
 
 # Register event handlers here
 @app.on_event("startup")

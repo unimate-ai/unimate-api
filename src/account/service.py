@@ -70,7 +70,7 @@ class AccountService:
             )
 
             return response
-        except Exception as err:
+        except Exception:
             raise RegistrationFailedException()
         
     @classmethod
@@ -193,16 +193,19 @@ class AccountService:
         user: User,
         payload: SocialsSchema,
     ) -> Socials:
-        socials_model_schema = cls._create_user_socials_schema(user=user, payload=payload)
+        socials_model_schema = cls._create_user_socials_schema(
+            user=user, 
+            payload=payload,
+        )
 
         socials_obj_db = Socials(**socials_model_schema.model_dump())
         
         try:
-             session.add(socials_obj_db)
-             session.commit()     
-             session.refresh(socials_obj_db)
+            session.add(socials_obj_db)
+            session.commit()     
+            session.refresh(socials_obj_db)
 
-             return socials_obj_db
+            return socials_obj_db
         except Exception as err:
             session.rollback()
             raise err

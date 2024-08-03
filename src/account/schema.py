@@ -36,5 +36,4 @@ class SocialsResponseSchema(SocialsSchema):
     owner_email: EmailStr
 
 class SocialsModelSchema(SocialsSchema, UniMateBaseSchema):
-    # owner: EmailStr
     owner_id: UUID4
