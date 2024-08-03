@@ -2,7 +2,8 @@ import uuid
 from http import HTTPStatus
 
 from pydantic import (
-    EmailStr
+    EmailStr, 
+    UUID4,
 )
 
 from unimate_logger import logger
@@ -114,6 +115,24 @@ class AccountService:
             raise err
         
     # Utility methods
+    @staticmethod
+    def get_user_by_id(
+        session: Session,
+        user_id: UUID4,
+    ) -> User | None:
+        """
+        Fetch a user from the database based on ID
+        """
+
+        users = session.query(User).all()
+        logger.info(users)
+        
+        user = session.query(User) \
+                .filter(User.id == user_id, User.is_deleted == False) \
+                .first()
+        
+        return user
+        
     @staticmethod
     def get_user_by_email(
         session: Session,

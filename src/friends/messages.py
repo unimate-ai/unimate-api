@@ -1,0 +1,1 @@
+FRIENDS_CREATED = "Successfully created a friends connection"
