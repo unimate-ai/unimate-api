@@ -9,7 +9,7 @@ mlb = model_data['mlb']
 interest_df = model_data['interest_df']
 similarity_df = model_data['similarity_df']
 
-def recommend_students(student_interests, top_n=5):
+def recommend_students(student_interests, top_n):
     new_student_matrix = mlb.transform([student_interests])
     new_student_df = pd.DataFrame(new_student_matrix, columns=mlb.classes_)
     new_student_similarity = cosine_similarity(new_student_df, interest_df).flatten()
