@@ -65,7 +65,6 @@ class AccountService:
 
             return response
         except Exception as err:
-            print(err.__str__())
             raise RegistrationFailedException()
 
 
