@@ -33,11 +33,6 @@ class User(UniMateBaseModel):
     graduation_year = Column(Integer())
     interests = Column(ARRAY(String))
 
-    socials = relationship(
-        "UserSocials",
-        back_populates="owner"
-    )
-
 class Socials(UniMateBaseModel):
     __tablename__ = "socials"
 

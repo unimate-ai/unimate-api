@@ -1,0 +1,29 @@
+from datetime import datetime
+from typing import Optional, List
+from typing_extensions import Annotated
+from pydantic import (
+    UUID4,
+    BaseModel,
+    EmailStr,
+    Field,
+)
+
+from src.core.schema import (
+    UniMateBaseSchema
+)
+
+class RegisterSchema(BaseModel):
+    name: str = Field(..., max_length=255) 
+    student_email: EmailStr
+    major: str = Field(..., max_length=255)
+    cohort_year: int
+    graduation_year: int
+    interests: List[str]
+
+class RegisterResponseSchema(BaseModel):
+    name: str
+    email: EmailStr
+    created_at: datetime
+
+class UserModelSchema(RegisterSchema, UniMateBaseSchema):
+    pass
