@@ -22,13 +22,11 @@ from src.friends.schema import (
 from src.account.model import User
 from src.account.exceptions import (
     UnauthorizedOperationException,
+    UserDoesNotExistsException
 )
 
 from src.friends.model import (
     Friend,
-)
-from src.friends.exceptions import (
-    UserDoesNotExistsException
 )
 from src.friends import messages as FriendsMessages
 
@@ -89,6 +87,7 @@ class FriendsService:
         session: Session,
         current_user_email: EmailStr,
     ) -> GenericAPIResponseModel:
+        # Check if user is logged in
         user = AccountService.get_user_by_email(
             session=session,
             student_email=current_user_email,
