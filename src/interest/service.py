@@ -18,7 +18,10 @@ from src.interest.schema import (
     InterestModelSchema,
 )
 from src.interest.model import Interest
-import  src.interest.messages as InterestMessages
+import src.interest.messages as InterestMessages
+from src.interest.exceptions import (
+    InterestAlreadyExistsException,
+)
 
 class InterestService:
     @classmethod
@@ -28,6 +31,9 @@ class InterestService:
         payload: InterestSchema,
     ) -> GenericAPIResponseModel:
         try:
+            interest_exists = cls.is_interest_exists(name=payload.name, session=session)
+            if interest_exists:
+                raise InterestAlreadyExistsException()
             interest = cls._create_interest(
                 session=session,
                 payload=payload
@@ -47,10 +53,28 @@ class InterestService:
             )
 
             return response
+        except InterestAlreadyExistsException as err:
+            raise err
         except Exception as err:
             raise err
 
     # Utility methods
+    @classmethod
+    def is_interest_exists(
+        cls,
+        name: str,
+        session: Session,
+    ) -> bool:
+        interest = session.query(Interest) \
+                    .filter(Interest.name == name) \
+                    .first()
+        
+        if interest is None:
+            return False
+
+        return True
+
+
     @staticmethod
     def _create_interest_schema(
         payload: InterestSchema,

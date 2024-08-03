@@ -23,6 +23,9 @@ from src.utils.response_builder import build_api_response
 
 from src.interest.service import InterestService
 from src.interest.schema import InterestSchema
+from src.interest.exceptions import (
+    InterestAlreadyExistsException,
+)
 
 VERSION = "v1"
 ENDPOINT = "interest"
@@ -44,6 +47,15 @@ def create_interest(
         )
 
         return build_api_response(response)
+    except InterestAlreadyExistsException as err:
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
+    
     except Exception as err:
         logger.error(err.__str__())
         
