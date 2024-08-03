@@ -19,3 +19,7 @@ class UnauthorizedOperationException(Exception):
     def __init__(self, message="Unauthorized operation. You may have to log in with the necessary permissions to perform this action."):
         super().__init__(message)
         self.message = message
+
+class UserDoesNotExistsException(Exception):
+    def __init__(self, message: str = "User does not exist!"):
+        super(UserDoesNotExistsException, self).__init__(message)

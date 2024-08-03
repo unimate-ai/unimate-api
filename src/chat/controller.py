@@ -24,28 +24,38 @@ from src.utils.db import get_db
 from src.core.schema import GenericAPIResponseModel
 from src.utils.response_builder import build_api_response
 
-from src.event.schema import (
-    EventSchema,
+from src.account.exceptions import (
+    UnauthorizedOperationException
 )
-from src.event.service import EventService
+
+from src.chat.service import ChatService
+from src.chat.schema import (
+    ChatroomRequestSchema,
+    ChatroomSchema,
+    ChatroomModelSchema,
+    ChatMessageSchema,
+    ChatMessageModelSchema,
+)
 
 VERSION = "v1"
-ENDPOINT = "event"
+ENDPOINT = "chat"
 
-event_router = APIRouter(
+chat_router = APIRouter(
     prefix=f"/{VERSION}/{ENDPOINT}",
     tags=[ENDPOINT]
 )
 
-@event_router.post("/", status_code=HTTPStatus.CREATED, response_model=GenericAPIResponseModel)
-def create_event(
-    payload: EventSchema = Body(),
+@chat_router.post("/", status_code=HTTPStatus.CREATED, response_model=GenericAPIResponseModel)
+def create_chatroom(
+    payload: ChatroomRequestSchema,
+    x_current_user: Annotated[EmailStr | None, Header()] = None,
     session: Session = Depends(get_db),
 ):
     try:
-        response = EventService.create_event(
-            session=session,
+        response = ChatService.create_chatroom(
             payload=payload,
+            current_user_email=x_current_user,
+            session=session,
         )
 
         return build_api_response(response)
@@ -59,38 +69,41 @@ def create_event(
         )
 
         return build_api_response(response)
-    
-@event_router.get("/", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
-def fetch_all_events(
-    session: Session = Depends(get_db),
-): 
-    try: 
-        response = EventService.fetch_all_events(
-            session=session
-        )
 
-        return build_api_response(response)
-    except Exception as err:
-        logger.error(err.__str__())
-        
-        response = GenericAPIResponseModel(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-            content=err.__str__(),
-            error=err.__str__(),
-        )
-
-        return build_api_response(response)
-    
-@event_router.get("/{event_id}", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
-def fetch_event_by_id(
-    event_id: str,
+@chat_router.get("/all", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+def fetch_all_my_chats(
+    x_current_user: Annotated[EmailStr | None, Header()] = None,
     session: Session = Depends(get_db),
 ):
     try:
-        event_uuid = uuid.UUID(event_id)
+        response = ChatService.fetch_all_chats(
+            current_user_email=x_current_user,
+            session=session,
+        )
 
-        response = EventService.fetch_event_details(
-            payload=event_uuid,
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
+
+@chat_router.get("/{chatroom_id}", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+def fetch_chatroom(
+    chatroom_id: str,
+    x_current_user: Annotated[EmailStr | None, Header()] = None,
+    session: Session = Depends(get_db),
+):
+    try:
+
+        response = ChatService.fetch_chatroom(
+            current_user_email=x_current_user,
+            chatroom_id=chatroom_id,
             session=session,
         )
 
