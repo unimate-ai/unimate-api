@@ -85,6 +85,24 @@ def register_user(
 
         return build_api_response(response)
     
+@account_router.get("/allusers")
+def fetch_all_users(
+    session: Session = Depends(get_db),
+):
+    try:
+        response = AccountService.fetch_all_users(session=session)
+
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
 @account_router.post("/socials")
 def create_socials(
     x_current_user: Annotated[EmailStr | None, Header()] = None,
@@ -119,3 +137,4 @@ def create_socials(
         )
 
         return build_api_response(response)
+

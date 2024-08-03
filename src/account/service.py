@@ -1,5 +1,6 @@
 import uuid
 from http import HTTPStatus
+from typing import List
 
 from pydantic import (
     EmailStr, 
@@ -36,6 +37,31 @@ from src.account import messages as AccountMessages
 
 class AccountService:
     # Business Logic
+    @classmethod
+    def fetch_all_users(
+        cls,
+        session: Session,
+    ) -> GenericAPIResponseModel:
+        try:
+            users = session.query(User).all()
+
+            data = {
+                "users": users,
+            }
+
+            data_json = jsonable_encoder(data)
+
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.OK,
+                message="Fetched all users",
+                data=data_json,
+            )
+
+            return response
+        except Exception as err:
+            raise err
+        
+
     @classmethod
     def register_user(
         cls,
