@@ -3,7 +3,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics.pairwise import cosine_similarity
 import joblib
 
-file_path = 'Student_Data.csv'  # Update with your actual path
+file_path = 'Data.csv'
 df = pd.read_csv(file_path)
 
 df = df[['Name', 'Interests']]
