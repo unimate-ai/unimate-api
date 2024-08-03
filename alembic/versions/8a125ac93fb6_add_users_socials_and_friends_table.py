@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.Column("major", sa.String(255), nullable=True),
         sa.Column("cohort_year", sa.Integer(), nullable=True),
         sa.Column("graduation_year", sa.Integer(), nullable=True),
-        sa.Column("interests", sa.ARRAY(sa.String()), nullable=True),
+        sa.Column("interests", sa.ARRAY(sa.String(255)), nullable=True),
 
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("student_email"),
