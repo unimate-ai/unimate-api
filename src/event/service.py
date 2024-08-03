@@ -17,6 +17,7 @@ from src.event import messages as EventMessages
 from src.event.schema import (
     EventSchema,
     EventModelSchema,
+    FetchEventPayload
 )
 from src.event.model import (
     Event,
@@ -43,6 +44,60 @@ class EventService:
             response = GenericAPIResponseModel(
                 status=HTTPStatus.CREATED,
                 message=EventMessages.CREATED_EVENT,
+                data=data_json,
+            )
+
+            return response
+        except Exception as err:
+            raise err
+        
+    @classmethod
+    def fetch_all_events(
+        cls,
+        session: Session,
+    ) -> GenericAPIResponseModel:
+        try:
+            all_events = session.query(Event).all()
+
+            data = {
+                "events": all_events,
+            }
+            data_json = jsonable_encoder(data)
+
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.OK,
+                message="Success fetching all events",
+                data=data_json,
+            )
+
+            return response
+        except Exception as err:
+            raise err
+        
+    @classmethod
+    def fetch_event_details(
+        cls,
+        payload: str,
+        session: Session,
+    ) -> GenericAPIResponseModel:
+        try:
+            event_uuid = payload
+            event_details = session.query(Event) \
+                            .filter(Event.id == event_uuid) \
+                            .first()
+            
+            if event_details is None:
+                raise Exception(f"Event with ID {event_uuid} does not exist.")
+            
+            data = {
+                "event": event_details,
+            }
+
+            data_json = jsonable_encoder(data)
+            
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.OK,
+                message="Success fetching event details",
                 data=data_json,
             )
 

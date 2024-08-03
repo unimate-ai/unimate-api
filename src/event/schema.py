@@ -25,3 +25,5 @@ class EventSchema(BaseModel):
 class EventModelSchema(EventSchema, UniMateBaseSchema):
     pass
 
+class FetchEventPayload(BaseModel):
+    id: UUID4

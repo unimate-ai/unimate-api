@@ -1,3 +1,4 @@
+import uuid
 from http import HTTPStatus
 from typing_extensions import Annotated
 from sqlalchemy.orm import Session
@@ -58,3 +59,38 @@ def create_event(
         )
 
         return build_api_response(response)
+    
+@event_router.get("/", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+def fetch_all_events(
+    session: Session = Depends(get_db),
+): 
+    try: 
+        response = EventService.fetch_all_events(
+            session=session
+        )
+
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
+    
+@event_router.get("/{event_id}", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+def fetch_event_by_id(
+    event_id: str,
+    session: Session = Depends(get_db),
+):
+    event_uuid = uuid.UUID(event_id)
+
+    response = EventService.fetch_event_details(
+        payload=event_uuid,
+        session=session,
+    )
+
+    return build_api_response(response)
