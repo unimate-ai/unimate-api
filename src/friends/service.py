@@ -63,8 +63,8 @@ class FriendsService:
                 raise UserDoesNotExistsException()
             
             # Check if both users are already friends
+            # E1 - linear time query
             is_already_connected = session.query(Friend).filter(
-                    # E1 - linear time comparison
                     (
                         (Friend.friend_one == user_one.id) & (Friend.friend_two == user_two.id) 
                     ) | (
