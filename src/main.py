@@ -16,6 +16,12 @@ from fastapi.responses import (
 )
 from fastapi.encoders import jsonable_encoder
 
+# Import routers
+from src.account.controller import account_router
+from src.interest.controller import interests_router
+from src.event.controller import event_router
+from src.friends.controller import friends_router
+from src.chat.controller import chat_router
 
 from starlette.middleware.cors import CORSMiddleware
 
@@ -23,7 +29,8 @@ from starlette.middleware.cors import CORSMiddleware
 from src.utils.settings import ENV_TYPE, PORT
 
 # Application
-OPENAPI_URL = "/openapi.json" if ENV_TYPE == "DEV" else None
+OPENAPI_URL = "/openapi.json" 
+# if ENV_TYPE == "DEV" else None
 
 app = FastAPI(openapi_url=OPENAPI_URL)
 
@@ -33,7 +40,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         # Add frontend origins here
-        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://unimate-ai.vercel.app/",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -48,10 +56,16 @@ app.add_middleware(
         "Origin",
         "User-Agent",
         "X-Requested-With",
+        "X-Current-User",
     ],
 )
 
 # Include routers after adding CORS middleware
+app.include_router(account_router)
+app.include_router(interests_router)
+app.include_router(event_router)
+app.include_router(friends_router)
+app.include_router(chat_router)
 
 # Register event handlers here
 @app.on_event("startup")

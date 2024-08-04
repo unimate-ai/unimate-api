@@ -1,0 +1,1 @@
+CREATED_INTEREST = "Successfully created new Interest"
