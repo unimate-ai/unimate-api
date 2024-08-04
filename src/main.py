@@ -29,7 +29,8 @@ from starlette.middleware.cors import CORSMiddleware
 from src.utils.settings import ENV_TYPE, PORT
 
 # Application
-OPENAPI_URL = "/openapi.json" if ENV_TYPE == "DEV" else None
+OPENAPI_URL = "/openapi.json" 
+# if ENV_TYPE == "DEV" else None
 
 app = FastAPI(openapi_url=OPENAPI_URL)
 
@@ -39,7 +40,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         # Add frontend origins here
-        "http://localhost:3000",
+        "http://localhost:5173",
+        "*",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -54,6 +56,7 @@ app.add_middleware(
         "Origin",
         "User-Agent",
         "X-Requested-With",
+        "X-Current-User",
     ],
 )
 

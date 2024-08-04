@@ -24,6 +24,17 @@ class ChatroomSchema(BaseModel):
 class ChatroomModelSchema(ChatroomSchema, UniMateBaseSchema):
     pass
 
+class ChatroomID(BaseModel):
+    chatroom_id: UUID4
+
+class ChatroomByEmail(BaseModel):
+    user_one_email: EmailStr
+    user_two_email: EmailStr
+
+class ChatMessageRequestSchema(BaseModel):
+    chatroom_id: UUID4
+    message: str
+
 class ChatMessageSchema(BaseModel):
     chatroom_id: UUID4
     sender_id: UUID4

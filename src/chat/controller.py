@@ -35,6 +35,9 @@ from src.chat.schema import (
     ChatroomModelSchema,
     ChatMessageSchema,
     ChatMessageModelSchema,
+    ChatMessageRequestSchema,
+    ChatroomID,
+    ChatroomByEmail,
 )
 
 VERSION = "v1"
@@ -55,6 +58,78 @@ def create_chatroom(
         response = ChatService.create_chatroom(
             payload=payload,
             current_user_email=x_current_user,
+            session=session,
+        )
+
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
+
+@chat_router.get("/room", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+def fetch_chatroom(
+    payload: ChatroomID = Body(),
+    x_current_user: Annotated[EmailStr | None, Header()] = None,
+    session: Session = Depends(get_db),
+):
+    try:
+        response = ChatService.fetch_chatroom(
+            current_user_email=x_current_user,
+            chatroom_id=payload.chatroom_id,
+            session=session,
+        )
+
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
+    
+@chat_router.post("/room-messages", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel) 
+def fetch_chatroom_messages(
+    payload: ChatroomID,
+    session: Session = Depends(get_db),
+):
+    try:
+        response = ChatService.fetch_chatroom_messages(
+            payload=payload,
+            session=session,
+        )
+
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
+
+    
+@chat_router.post("/room", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+def fetch_chatroom_by_emails(
+    payload: ChatroomByEmail = Body(),
+    session: Session = Depends(get_db),
+):
+    try:
+        response = ChatService.fetch_chatroom_by_emails(
+            payload=payload,
             session=session,
         )
 
@@ -93,20 +168,19 @@ def fetch_all_my_chats(
 
         return build_api_response(response)
 
-@chat_router.get("/{chatroom_id}", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
-def fetch_chatroom(
-    chatroom_id: str,
+@chat_router.post("/send", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+def send_message(
+    payload: ChatMessageRequestSchema,
     x_current_user: Annotated[EmailStr | None, Header()] = None,
     session: Session = Depends(get_db),
 ):
     try:
-
-        response = ChatService.fetch_chatroom(
+        response = ChatService.send_message(
             current_user_email=x_current_user,
-            chatroom_id=chatroom_id,
+            payload=payload,
             session=session,
         )
-
+        
         return build_api_response(response)
     except Exception as err:
         logger.error(err.__str__())
