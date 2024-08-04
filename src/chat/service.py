@@ -39,6 +39,8 @@ from src.chat.schema import (
     ChatMessageSchema,
     ChatMessageModelSchema,
     ChatMessageRequestSchema,
+    ChatroomByEmail,
+    ChatroomID,
 )
 
 class ChatService:
@@ -129,6 +131,79 @@ class ChatService:
             
             # Check if user is in the chatroom or not
             if (chatroom.user_one_id != user.id) and (chatroom.user_two_id != user.id):
+                raise ChatroomDoesNotExistsException()
+            
+            # If chatroom exists and contains the requesting user, serve the request
+            data = {
+                "chatroom": chatroom,
+            }
+
+            data_json = jsonable_encoder(data)
+
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.OK,
+                message="Success fetching chatroom details",
+                data=data_json,
+            )
+
+            return response
+        except Exception as err:
+            raise err
+        
+    @classmethod
+    def fetch_chatroom_messages(
+        cls,
+        payload: ChatroomID,
+        session: Session,
+    ) -> GenericAPIResponseModel:
+        try:
+            chatroom = session.query(Chatroom) \
+                        .filter(Chatroom.id == payload.chatroom_id, Chatroom.is_deleted == False) \
+                        .first()
+            
+            if chatroom is None:
+                raise Exception("Chatroom not found!")
+
+            chatroom_messages = session.query(ChatMessage) \
+                                .filter(ChatMessage.chatroom_id == chatroom.id, ChatMessage.is_deleted == False) \
+                                .order_by(ChatMessage.created_at) \
+                                .all()
+            
+            data = {
+                "messages": chatroom_messages,
+            }
+
+            data_json = jsonable_encoder(data)
+
+            response = GenericAPIResponseModel(
+                status=HTTPStatus.OK,
+                message="Fetched chatroom messages",
+                data=data_json,
+            )
+
+            return response
+        except Exception as err:
+            raise err
+    @classmethod
+    def fetch_chatroom_by_emails(
+        cls,
+        payload: ChatroomByEmail,
+        session: Session,
+    ) -> GenericAPIResponseModel:
+        try:
+            # Fetch users
+            user_one = AccountService.get_user_by_email(session=session, student_email=payload.user_one_email)
+            user_two = AccountService.get_user_by_email(session=session, student_email=payload.user_two_email)
+
+            # Fetch chatroom
+            chatroom = session.query(Chatroom) \
+                        .filter(
+                            ((Chatroom.user_one_id == user_one.id) & (Chatroom.user_two_id == user_two.id)) 
+                            | ((Chatroom.user_two_id == user_one.id) & (Chatroom.user_one_id == user_two.id))
+                        ) \
+                        .first()
+            
+            if not chatroom:
                 raise ChatroomDoesNotExistsException()
             
             # If chatroom exists and contains the requesting user, serve the request

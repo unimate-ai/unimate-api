@@ -37,6 +37,7 @@ from src.chat.schema import (
     ChatMessageModelSchema,
     ChatMessageRequestSchema,
     ChatroomID,
+    ChatroomByEmail,
 )
 
 VERSION = "v1"
@@ -96,6 +97,53 @@ def fetch_chatroom(
         )
 
         return build_api_response(response)
+    
+@chat_router.post("/room-messages", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel) 
+def fetch_chatroom_messages(
+    payload: ChatroomID,
+    session: Session = Depends(get_db),
+):
+    try:
+        response = ChatService.fetch_chatroom_messages(
+            payload=payload,
+            session=session,
+        )
+
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
+
+    
+@chat_router.post("/room", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+def fetch_chatroom_by_emails(
+    payload: ChatroomByEmail = Body(),
+    session: Session = Depends(get_db),
+):
+    try:
+        response = ChatService.fetch_chatroom_by_emails(
+            payload=payload,
+            session=session,
+        )
+
+        return build_api_response(response)
+    except Exception as err:
+        logger.error(err.__str__())
+        
+        response = GenericAPIResponseModel(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            content=err.__str__(),
+            error=err.__str__(),
+        )
+
+        return build_api_response(response)
 
 @chat_router.get("/all", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
 def fetch_all_my_chats(
@@ -120,7 +168,7 @@ def fetch_all_my_chats(
 
         return build_api_response(response)
 
-@chat_router.post("/messsage", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
+@chat_router.post("/send", status_code=HTTPStatus.OK, response_model=GenericAPIResponseModel)
 def send_message(
     payload: ChatMessageRequestSchema,
     x_current_user: Annotated[EmailStr | None, Header()] = None,

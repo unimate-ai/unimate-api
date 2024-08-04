@@ -83,6 +83,7 @@ class AccountService:
             )
 
             data = RegisterResponseSchema(
+                user_id=user.id,
                 name=user.name,
                 email=user.student_email,
                 created_at=user.created_at,
