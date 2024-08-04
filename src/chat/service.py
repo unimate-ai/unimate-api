@@ -164,6 +164,7 @@ class ChatService:
             if chatroom is None:
                 raise Exception("Chatroom not found!")
 
+            # E2 linear time object query
             chatroom_messages = session.query(ChatMessage) \
                                 .filter(ChatMessage.chatroom_id == chatroom.id, ChatMessage.is_deleted == False) \
                                 .order_by(ChatMessage.created_at) \
