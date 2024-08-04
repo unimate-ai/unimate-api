@@ -25,6 +25,10 @@ from src.account.exceptions import (
     UserDoesNotExistsException
 )
 
+from src.friends.exceptions import (
+    FriendAlreadyExistsException,
+)
+
 from src.friends.model import (
     Friend,
 )
@@ -57,6 +61,21 @@ class FriendsService:
             
             if user_two is None:
                 raise UserDoesNotExistsException()
+            
+            # Check if both users are already friends
+            is_already_connected = session.query(Friend).filter(
+                    (
+                        (Friend.friend_one == user_one.id) & (Friend.friend_two == user_two.id) 
+                    ) | (
+                        (Friend.friend_one == user_two.id) & (Friend.friend_two == user_one.id)
+                    )
+                ) \
+                .first()
+            
+            if (is_already_connected):
+                logger.error(f"Friend already connected:\n{is_already_connected}")
+                raise FriendAlreadyExistsException()
+            
             
             # Both user exists at this point, so we add to the Friends table
             friend_conn = cls._create_friends_connection(
