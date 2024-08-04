@@ -41,7 +41,7 @@ app.add_middleware(
     allow_origins=[
         # Add frontend origins here
         "http://localhost:5173",
-        "https://unimate-ai.vercel.app/",
+        "https://unimate-ai.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
