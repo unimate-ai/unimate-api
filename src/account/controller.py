@@ -85,7 +85,7 @@ def register_user(
 
         return build_api_response(response)
     
-@account_router.get("/allusers")
+@account_router.get("/allusers", status_code=HTTPStatus.OK, response_class=GenericAPIResponseModel)
 def fetch_all_users(
     session: Session = Depends(get_db),
 ):
